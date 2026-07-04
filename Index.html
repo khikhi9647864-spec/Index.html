@@ -1,0 +1,240 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Activity, Play, Square, Terminal, ShieldCheck, AlertCircle, Clock } from 'lucide-react';
+
+export default function App() {
+  const [url, setUrl] = useState('');
+  const [intervalMinutes, setIntervalMinutes] = useState('4');
+  const [isRunning, setIsRunning] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const logsEndRef = useRef(null);
+
+  // Tự động cuộn xuống cuối khi có log mới
+  useEffect(() => {
+    if (logsEndRef.current) {
+      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
+
+  const addLog = useCallback((message, type = 'info') => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('vi-VN', { hour12: false });
+    setLogs((prev) => [...prev, { id: Date.now(), time: timeString, message, type }]);
+  }, []);
+
+  const pingServer = useCallback(async (targetUrl) => {
+    let finalUrl;
+    
+    // Tiền xử lý URL: Thêm https:// nếu người dùng quên, kiểm tra tính hợp lệ
+    let processUrl = targetUrl.trim();
+    if (!processUrl.startsWith('http://') && !processUrl.startsWith('https://')) {
+      processUrl = 'https://' + processUrl;
+    }
+
+    try {
+      const urlObj = new URL(processUrl);
+      // Thêm tham số ngẫu nhiên để tránh Render trả về bộ nhớ đệm (cache), ép server xử lý
+      urlObj.searchParams.set('_wake_up_id', Date.now());
+      finalUrl = urlObj.toString();
+    } catch (error) {
+      addLog(`Lỗi: URL "${targetUrl}" không hợp lệ. Đã dừng hệ thống.`, 'error');
+      setIsRunning(false);
+      return;
+    }
+
+    try {
+      addLog(`Đang gửi tín hiệu đánh thức tới: ${processUrl}...`, 'pending');
+      
+      // mode: 'no-cors' vô cùng quan trọng để không bị chặn bởi CORS
+      await fetch(finalUrl, {
+        method: 'GET',
+        mode: 'no-cors',
+        cache: 'no-store'
+      });
+      addLog(`[Thành công] Đã gửi ping. Máy chủ của bạn đang thức!`, 'success');
+    } catch (error) {
+      addLog(`[Thất bại] Lỗi mạng khi kết nối tới máy chủ.`, 'error');
+    }
+  }, [addLog]);
+
+  // Hook quản lý bộ đếm thời gian
+  useEffect(() => {
+    let intervalId;
+
+    if (isRunning) {
+      const minutes = parseFloat(intervalMinutes);
+      
+      if (isNaN(minutes) || minutes <= 0) {
+        addLog('Lỗi: Thời gian (phút) phải là một số lớn hơn 0.', 'error');
+        setIsRunning(false);
+        return;
+      }
+
+      addLog(`=== HỆ THỐNG BẮT ĐẦU HOẠT ĐỘNG ===`, 'system');
+      addLog(`Chu kỳ ping: Mỗi ${minutes} phút.`, 'system');
+      
+      // Gửi Ping ngay lập tức lần đầu
+      pingServer(url);
+
+      // Thiết lập lặp lại
+      const ms = minutes * 60 * 1000;
+      intervalId = setInterval(() => {
+        pingServer(url);
+      }, ms);
+    } else if (!isRunning && logs.length > 0 && logs[logs.length - 1].message !== '=== HỆ THỐNG ĐÃ DỪNG ===') {
+      addLog('=== HỆ THỐNG ĐÃ DỪNG ===', 'system');
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isRunning, intervalMinutes, url, pingServer]);
+
+  const handleToggle = () => {
+    if (!url.trim()) {
+      addLog('Vui lòng nhập địa chỉ URL của web (ví dụ: my-app.onrender.com).', 'error');
+      return;
+    }
+    setIsRunning(!isRunning);
+  };
+
+  const handleClearLogs = () => {
+    setLogs([]);
+  };
+
+  // Các hàm tiện ích để render màu sắc log
+  const getLogColor = (type) => {
+    switch (type) {
+      case 'success': return 'text-green-400';
+      case 'error': return 'text-red-400';
+      case 'system': return 'text-purple-400 font-semibold';
+      case 'pending': return 'text-yellow-400';
+      default: return 'text-gray-300';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center p-4 md:p-8 font-sans">
+      
+      {/* Header */}
+      <div className="w-full max-w-3xl flex items-center justify-center space-x-3 mb-8">
+        <Activity className={`w-10 h-10 ${isRunning ? 'text-green-500 animate-pulse' : 'text-blue-500'}`} />
+        <h1 className="text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+          Render Keep Alive
+        </h1>
+      </div>
+
+      {/* Main Panel */}
+      <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* Controls Section */}
+        <div className="p-6 md:p-8 space-y-6">
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col md:flex-row gap-4">
+            
+            {/* URL Input */}
+            <div className="flex-1 space-y-2">
+              <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                Địa chỉ Web (URL) cần giữ hoạt động
+              </label>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={isRunning}
+                placeholder="https://app-cua-ban.onrender.com"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all font-mono text-sm"
+              />
+            </div>
+
+            {/* Interval Input */}
+            <div className="w-full md:w-32 space-y-2">
+              <label className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Chu kỳ (Phút)
+              </label>
+              <input
+                type="number"
+                value={intervalMinutes}
+                onChange={(e) => setIntervalMinutes(e.target.value)}
+                disabled={isRunning}
+                min="1"
+                step="0.5"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition-all font-mono text-sm text-center"
+              />
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={handleToggle}
+            className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${
+              isRunning 
+                ? 'bg-red-500/10 text-red-500 border border-red-500/50 hover:bg-red-500/20 shadow-red-500/20' 
+                : 'bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:from-blue-500 hover:to-emerald-500 shadow-blue-500/25 border border-transparent'
+            }`}
+          >
+            {isRunning ? (
+              <>
+                <Square className="w-5 h-5 fill-current" /> Dừng Auto Ping
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" /> Bắt đầu Auto Ping
+              </>
+            )}
+          </button>
+
+          {/* Info banner */}
+          <div className="flex items-start gap-3 text-sm text-slate-400 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
+            <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <p>
+              <strong>Lưu ý quan trọng:</strong> Công cụ này chạy trực tiếp trên trình duyệt của bạn.
+              Để web trên Render không bị ngủ, bạn cần <strong>bật và giữ tab này mở</strong> liên tục.
+              Nếu bạn tắt máy tính hoặc tắt tab, tiến trình sẽ dừng.
+            </p>
+          </div>
+        </div>
+
+        {/* Terminal/Log Section */}
+        <div className="bg-[#0c0c0c] border-t border-slate-800 p-4">
+          <div className="flex items-center justify-between mb-3 px-2">
+            <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2">
+              <Terminal className="w-4 h-4" /> Nhật ký hệ thống (Logs)
+            </h3>
+            <button 
+              onClick={handleClearLogs}
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              Xóa lịch sử
+            </button>
+          </div>
+          
+          <div className="bg-black/50 rounded-lg p-4 h-64 overflow-y-auto font-mono text-xs md:text-sm border border-slate-800 shadow-inner">
+            {logs.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-600 italic">
+                Chưa có nhật ký hoạt động nào. Hãy ấn Bắt đầu!
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {logs.map((log) => (
+                  <div key={log.id} className={`flex gap-3 leading-relaxed break-all ${getLogColor(log.type)}`}>
+                    <span className="text-slate-500 flex-shrink-0">[{log.time}]</span>
+                    <span>{log.message}</span>
+                  </div>
+                ))}
+                <div ref={logsEndRef} />
+              </div>
+            )}
+          </div>
+        </div>
+
+      </div>
+      
+      {/* Footer */}
+      <p className="mt-8 text-slate-500 text-sm">
+        Hoạt động hiệu quả 100% với các gói Free Tier của Render, Heroku...
+      </p>
+    </div>
+  );
+}
+          
