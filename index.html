@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Render Keep Alive - Multi Pro</title>
+    <title>Render Keep Alive - Multi Pro 24/7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -29,8 +29,9 @@
                     </span>
                 </div>
                 
-                <textarea id="urls-input" rows="5" placeholder="https://app-1.onrender.com&#10;https://app-2.onrender.com&#10;https://app-3.herokuapp.com"
-                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm leading-relaxed transition-all resize-y"></textarea>
+                <textarea id="urls-input" rows="6" placeholder="https://app-1.onrender.com&#10;https://app-2.onrender.com&#10;https://app-3.herokuapp.com"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm leading-relaxed transition-all resize-y"
+                    title="Mỗi dòng là một link trang web"></textarea>
 
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-800/80">
                     <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -43,7 +44,7 @@
                     </div>
                     
                     <span class="text-xs text-slate-500 italic">
-                        *Dữ liệu và trạng thái chạy được tự động lưu vào trình duyệt.
+                        *Dữ liệu và trạng thái tự động lưu vào trình duyệt (Không sợ mất khi F5).
                     </span>
                 </div>
             </div>
@@ -57,7 +58,7 @@
             <div class="flex items-start gap-3 text-sm text-slate-400 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
                 <i data-lucide="zap" class="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5"></i>
                 <p>
-                    <strong>Chế độ tự động phục hồi:</strong> Nếu bạn đang bật Auto Ping mà lỡ đóng tab, lần tới khi mở lại trang web này, hệ thống sẽ <strong>tự động chạy tiếp</strong> danh sách 100 web của bạn ngay lập tức!
+                    <strong>Cơ chế tự động khôi phục:</strong> Nếu bạn lỡ đóng tab hoặc lỡ tay F5, khi mở lại trang này, hệ thống sẽ <strong>tự động chạy tiếp</strong> luôn mà không cần bạn bấm nút lại! (Nhưng lưu ý: Phải giữ tab mở thì mới chạy liên tục được nhé).
                 </p>
             </div>
         </div>
@@ -83,7 +84,7 @@
     <script>
         lucide.createIcons();
         
-        // Key lưu trữ localStorage
+        // Cấu hình Key lưu trữ cục bộ dữ liệu
         const STORAGE_KEY_URLS = 'rka_urls_v2';
         const STORAGE_KEY_INTERVAL = 'rka_interval_v2';
         const STORAGE_KEY_RUNNING = 'rka_is_running_v2';
@@ -101,7 +102,7 @@
         const statusIcon = document.getElementById('status-icon');
         const urlCountSpan = document.getElementById('url-count');
 
-        // Cập nhật bộ đếm URL
+        // Theo dõi người dùng nhập liệu để tự động lưu
         urlsInput.addEventListener('input', () => {
             updateUrlCount();
             saveSettings();
@@ -119,12 +120,13 @@
             }
         }
 
+        // Tách danh sách link dựa trên xuống dòng
         function getUrlList() {
             return urlsInput.value
                 .split('\n')
                 .map(u => u.trim())
                 .filter(u => u !== '')
-                .slice(0, 100); // Giới hạn tối đa 100 web
+                .slice(0, 100); // Ngưỡng tối đa 100 trang web cùng lúc
         }
 
         function saveSettings() {
@@ -164,15 +166,15 @@
             logsContainer.appendChild(div);
         }
 
-        // Gửi ping tuần tự có độ trễ nhỏ (để tránh trình duyệt bị lag khi bắn 100 request cùng lúc)
+        // Tiến trình ping tuần tự có độ trễ nhỏ để tránh đơ tab khi gọi 100 web cùng lúc
         async function pingAllServers() {
             const urls = getUrlList();
             if (urls.length === 0) return;
 
-            addLog(`⚡ Bắt đầu tiến trình ping cho ${urls.length} máy chủ...`, 'system');
+            addLog(`⚡ Bắt đầu tiến trình ping đồng loạt cho ${urls.length} máy chủ...`, 'system');
 
             for (let i = 0; i < urls.length; i++) {
-                if (!isRunning) break; // Dừng ngay nếu người dùng ấn nút Dừng giữa chừng
+                if (!isRunning) break; // Dừng ngay lập tức nếu ấn nút tắt giữa chừng
                 let targetUrl = urls[i];
                 if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
                     targetUrl = 'https://' + targetUrl;
@@ -180,18 +182,18 @@
 
                 try {
                     const urlObj = new URL(targetUrl);
-                    urlObj.searchParams.set('_ping_id', Date.now());
+                    urlObj.searchParams.set('_ping_id', Date.now()); // Tránh bị dính cache trình duyệt
                     
-                    // Gửi request ngầm không cản trở trình duyệt
+                    // Gửi request ngầm
                     fetch(urlObj.toString(), { method: 'GET', mode: 'no-cors', cache: 'no-store' })
-                        .catch(() => {}); // Bỏ qua lỗi CORS vì web đích vẫn nhận được request
+                        .catch(() => {}); // Bỏ qua lỗi CORS (máy chủ đích vẫn nhận được tín hiệu)
 
-                    addLog(`[${i + 1}/${urls.length}] Đã gửi tín hiệu tới: ${targetUrl}`, 'success');
+                    addLog(`[${i + 1}/${urls.length}] Đã kích hoạt: ${targetUrl}`, 'success');
                 } catch (e) {
                     addLog(`[${i + 1}/${urls.length}] Lỗi cú pháp URL: ${targetUrl}`, 'error');
                 }
 
-                // Nghỉ 150ms giữa mỗi URL để trình duyệt xử lý mượt mà 100 tab
+                // Nghỉ 150ms giữa mỗi link để trình duyệt chạy mượt, không bị lag máy
                 await new Promise(resolve => setTimeout(resolve, 150));
             }
             
@@ -224,7 +226,7 @@
             if (!isRunning) {
                 const urls = getUrlList();
                 if (urls.length === 0) {
-                    addLog('Vui lòng nhập ít nhất 1 địa chỉ web hợp lệ.', 'error');
+                    addLog('Vui lòng nhập ít nhất 1 địa chỉ web.', 'error');
                     return;
                 }
                 const minutes = parseFloat(intervalInput.value);
@@ -236,8 +238,8 @@
                 saveSettings();
                 setRunningState(true);
 
-                addLog(`=== HỆ THỐNG ĐÃ KÍCH HOẠT (${urls.length} WEB) ===`, 'system');
-                addLog(`Chu kỳ lặp lại: Mỗi ${minutes} phút.`, 'system');
+                addLog(`=== HỆ THỐNG KÍCH HOẠT THÀNH CÔNG (${urls.length} WEB) ===`, 'system');
+                addLog(`Chu kỳ tự động gọi: Mỗi ${minutes} phút.`, 'system');
                 
                 pingAllServers();
                 intervalId = setInterval(() => {
@@ -246,11 +248,11 @@
             } else {
                 clearInterval(intervalId);
                 setRunningState(false);
-                addLog('=== HỆ THỐNG ĐÃ DỪNG HOẠT ĐỘNG ===', 'system');
+                addLog('=== HỆ THỐNG ĐÃ DỪNG HOẠT ĐỘNG (Bấm nút mới dừng) ===', 'system');
             }
         }
 
-        // Tự động khôi phục trạng thái khi vừa vào web (Auto-Resume)
+        // Tự động tải lại dữ liệu cũ và khôi phục trạng thái (Auto-Resume) khi bật trang
         window.addEventListener('DOMContentLoaded', () => {
             const savedUrls = localStorage.getItem(STORAGE_KEY_URLS);
             const savedInterval = localStorage.getItem(STORAGE_KEY_INTERVAL);
@@ -261,12 +263,12 @@
             
             updateUrlCount();
 
-            // Nếu lần trước đang chạy mà F5/đóng trình duyệt, tự động chạy tiếp luôn!
+            // Nếu phiên làm việc trước đang chạy, tự động kích hoạt chạy tiếp luôn!
             if (savedRunning === 'true') {
-                addLog('Phát hiện trạng thái đang chạy trước đó. Tự động phục hồi tiến trình...', 'pending');
+                addLog('Phát hiện trạng thái Đang Chạy trước đó. Tự động khôi phục tiến trình...', 'pending');
                 setTimeout(() => {
                     togglePing();
-                }, 500);
+                }, 600);
             }
         });
     </script>
