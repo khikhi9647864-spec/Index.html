@@ -1,276 +1,921 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Render Keep Alive - Multi Pro 24/7</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VANTASHIELD.COM — Deploy web 24/7 từ GitHub hoặc code tay</title>
+<meta name="description" content="VANTASHIELD.COM — nền tảng deploy web 24/7. Kết nối GitHub hoặc dán code server.js + package.json là có ngay URL live, SSL miễn phí, auto scale, logs realtime." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        colors: {
+          ink: {
+            50:  '#fbfbfc',
+            100: '#f4f5f7',
+            200: '#e7e9ee',
+            300: '#d3d7de',
+            400: '#a3a9b5',
+            500: '#6d7280',
+            600: '#4a4f5a',
+            700: '#2f3239',
+            800: '#1e2026',
+            900: '#111318',
+          },
+          brand: {
+            50:  '#eef2ff',
+            300: '#b7c2ff',
+            500: '#5b6cff',
+            600: '#4453e6',
+            700: '#3641b8',
+          },
+          mint: '#4ade80',
+          amber: '#f59e0b',
+          rose: '#f43f5e',
+        },
+        boxShadow: {
+          soft: '0 1px 2px rgba(17,19,24,.04), 0 8px 24px -12px rgba(17,19,24,.12)',
+          glow: '0 20px 60px -20px rgba(91,108,255,.35)',
+        },
+        borderRadius: { xl2: '20px' }
+      }
+    }
+  }
+</script>
+<style>
+  :root { color-scheme: light; }
+  html, body { background: #f4f5f7; color: #1e2026; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(91,108,255,.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(180,190,220,.35), transparent 60%),
+      linear-gradient(180deg, #fbfbfc 0%, #eef0f4 100%);
+    min-height: 100vh;
+  }
+  .font-display { font-family: 'Space Grotesk', system-ui, sans-serif; letter-spacing: -0.01em; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  .glass {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border: 1px solid rgba(17,19,24,0.06);
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e7e9ee;
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(17,19,24,.04), 0 12px 30px -18px rgba(17,19,24,.15);
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 20px 50px -22px rgba(91,108,255,.28); border-color: #d7dcff; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .7rem 1.1rem; border-radius: 12px; font-weight: 600; font-size: .92rem;
+    transition: all .2s ease; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-primary { background: #1e2026; color: #fff; }
+  .btn-primary:hover { background: #111318; transform: translateY(-1px); box-shadow: 0 12px 24px -12px rgba(17,19,24,.4); }
+  .btn-brand { background: linear-gradient(135deg,#5b6cff,#4453e6); color:#fff; }
+  .btn-brand:hover { transform: translateY(-1px); box-shadow: 0 14px 30px -12px rgba(91,108,255,.55); }
+  .btn-ghost { background: #fff; color:#1e2026; border-color:#e7e9ee; }
+  .btn-ghost:hover { border-color:#c9cfda; background:#fbfbfc; }
+  
+  /* Thêm màu cho nút Xóa đỏ */
+  .btn-danger { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+  .btn-danger:hover { background: #fecaca; }
+
+  .chip { display:inline-flex; align-items:center; gap:.35rem; padding:.28rem .6rem; border-radius:999px; font-size:.72rem; font-weight:600; background:#eef2ff; color:#3641b8; border:1px solid #dfe4ff; }
+  .dot { width:.5rem;height:.5rem;border-radius:999px; display:inline-block; }
+
+  .gradient-text {
+    background: linear-gradient(90deg,#1e2026 0%, #4453e6 45%, #6d7280 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: all .7s ease; }
+  .reveal.on { opacity: 1; transform: none; }
+
+  .tab-btn { padding:.6rem 1rem; border-radius:10px; font-weight:600; color:#4a4f5a; }
+  .tab-btn.active { background:#1e2026; color:#fff; }
+
+  textarea, input, select { font-family: inherit; }
+  .field {
+    width:100%; background:#fbfbfc; border:1px solid #e7e9ee; border-radius:12px;
+    padding:.7rem .9rem; font-size:.92rem; color:#1e2026; outline:none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  .field:focus { border-color:#5b6cff; background:#fff; box-shadow: 0 0 0 4px rgba(91,108,255,.12); }
+  .code-field { font-family:'JetBrains Mono', monospace; font-size:.82rem; line-height:1.5; }
+
+  .log-line { font-family:'JetBrains Mono', monospace; font-size:.78rem; padding:.2rem 0; color:#d3d7de; }
+  .log-info { color:#a3a9b5; }
+  .log-ok { color:#4ade80; }
+  .log-warn { color:#f59e0b; }
+  .log-err { color:#f43f5e; }
+  .log-cmd { color:#b7c2ff; }
+
+  /* aurora blobs */
+  .blob { position:absolute; filter: blur(60px); opacity:.55; border-radius:9999px; pointer-events:none; z-index:0; }
+  .blob-1 { width:420px; height:420px; background:#c7d0ff; top:-120px; left:-80px; }
+  .blob-2 { width:380px; height:380px; background:#e7e9ee; top:60px; right:-100px; }
+
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display:none; }
+  details[open] .chev { transform: rotate(180deg); }
+  .chev { transition: transform .2s ease; }
+
+  @keyframes pulse-dot { 0%,100%{ opacity:1 } 50% { opacity:.4 } }
+  .live-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 20px);
+    background:#1e2026; color:#fff; padding:.7rem 1rem; border-radius:12px;
+    box-shadow: 0 20px 40px -12px rgba(17,19,24,.4);
+    opacity:0; transition: all .3s ease; z-index:9999; font-size:.9rem;
+  }
+  .toast.show { opacity:1; transform: translate(-50%, 0); }
+
+  /* modal */
+  .modal-overlay { position:fixed; inset:0; background:rgba(17,19,24,.5); backdrop-filter: blur(4px); z-index:80; display:none; align-items:center; justify-content:center; padding:1rem; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#fff; border-radius:20px; max-width:720px; width:100%; max-height:90vh; overflow:auto; }
+
+  .scroll-hide::-webkit-scrollbar { display:none; }
+  .scroll-hide { scrollbar-width: none; }
+</style>
 </head>
-<body class="bg-slate-950 text-slate-200 font-sans min-h-screen flex flex-col items-center p-4 md:p-8">
+<body class="antialiased">
 
-    <div class="w-full max-w-4xl flex items-center justify-center space-x-3 mb-6">
-        <i data-lucide="activity" id="status-icon" class="w-10 h-10 text-blue-500"></i>
-        <h1 class="text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-400 to-emerald-400">
-            Render Keep Alive Pro (Max 100)
+<!-- NAVBAR -->
+<header class="sticky top-0 z-40 glass border-b border-ink-200/60">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2.5">
+      <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-ink-900 to-brand-600 grid place-items-center shadow-glow">
+        <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4z"/></svg>
+      </span>
+      <span class="font-display font-bold text-ink-900 tracking-tight">VANTASHIELD<span class="text-brand-600">.COM</span></span>
+    </a>
+    <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-ink-600">
+      <a href="#deploy" class="hover:text-ink-900">Deploy</a>
+      <a href="#features" class="hover:text-ink-900">Tính năng</a>
+      <a href="#dashboard" class="hover:text-ink-900">Dashboard</a>
+      <a href="#pricing" class="hover:text-ink-900">Giá</a>
+      <a href="#docs" class="hover:text-ink-900">Docs</a>
+    </nav>
+    <div class="flex items-center gap-2" id="nav-actions">
+      <button id="btn-login" class="btn btn-ghost hidden sm:inline-flex" onclick="openAuth()">Đăng nhập</button>
+      <div id="user-info" class="hidden items-center gap-2">
+        <span class="text-sm font-bold text-ink-900 bg-ink-100 px-3 py-1.5 rounded-lg" id="display-username"></span>
+        <button class="text-rose text-xs font-bold px-2" onclick="logout()">Thoát</button>
+      </div>
+      <a href="#deploy" class="btn btn-brand">Deploy ngay</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section id="top" class="relative overflow-hidden">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="max-w-7xl mx-auto px-5 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-14 items-center">
+      <div class="reveal">
+        <span class="chip mb-5">
+          <span class="dot bg-mint live-dot"></span> Uptime 99.99% — 24/7
+        </span>
+        <h1 class="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.02] tracking-tight">
+          Deploy web <span class="gradient-text">chỉ trong 30 giây</span>
         </h1>
+        <p class="mt-6 text-lg text-ink-600 max-w-xl leading-relaxed">
+          Kết nối GitHub hoặc dán code <span class="font-mono text-ink-900">server.js</span> + <span class="font-mono text-ink-900">package.json</span> — VANTASHIELD build, chạy và giữ web sống 24/7 với SSL miễn phí, CDN toàn cầu và auto-scale.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#deploy" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            Bắt đầu miễn phí
+          </a>
+          <a href="#dashboard" class="btn btn-ghost">Xem dashboard demo</a>
+        </div>
+        <div class="mt-10 grid grid-cols-3 gap-6 max-w-lg">
+          <div><div class="font-display text-2xl font-bold text-ink-900">30s</div><div class="text-xs text-ink-500 mt-1">Build → Live</div></div>
+          <div><div class="font-display text-2xl font-bold text-ink-900">99.99%</div><div class="text-xs text-ink-500 mt-1">Uptime SLA</div></div>
+          <div><div class="font-display text-2xl font-bold text-ink-900">Free</div><div class="text-xs text-ink-500 mt-1">SSL + CDN</div></div>
+        </div>
+      </div>
+
+      <!-- Hero visual: fake terminal / deploy card -->
+      <div class="reveal">
+        <div class="card p-5 md:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose"></span>
+              <span class="w-3 h-3 rounded-full bg-amber"></span>
+              <span class="w-3 h-3 rounded-full bg-mint"></span>
+              <span class="ml-3 text-xs text-ink-500 font-mono">vantashield · deploy</span>
+            </div>
+            <span class="chip"><span class="dot bg-mint live-dot"></span>LIVE</span>
+          </div>
+          <div class="bg-ink-900 rounded-xl p-4 min-h-[280px]">
+            <div class="log-line log-cmd">$ vanta deploy --repo github.com/you/my-app</div>
+            <div class="log-line log-info">→ Cloning repository...</div>
+            <div class="log-line log-ok">✓ Detected: Node.js 20 · Express</div>
+            <div class="log-line log-info">→ Installing dependencies (npm ci)</div>
+            <div class="log-line log-ok">✓ 142 packages installed in 8.2s</div>
+            <div class="log-line log-info">→ Building container image</div>
+            <div class="log-line log-ok">✓ Image ready · 84 MB</div>
+            <div class="log-line log-info">→ Deploying to edge region: sin, fra, iad</div>
+            <div class="log-line log-ok">✓ Health check passed</div>
+            <div class="log-line log-ok">✓ SSL certificate issued</div>
+            <div class="log-line log-cmd mt-2">🌐 https://my-app.vantashield.app</div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-xs text-ink-500">
+            <span>Region: Singapore</span>
+            <span class="font-mono">deploy #142 · 27s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPLOY SECTION -->
+<section id="deploy" class="py-20 lg:py-24">
+  <div class="max-w-6xl mx-auto px-5 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12 reveal">
+      <span class="chip mb-4">Tạo web mới</span>
+      <h2 class="font-display text-4xl md:text-5xl font-bold text-ink-900">Chọn cách deploy của bạn</h2>
+      <p class="mt-4 text-ink-600">Hai cách nhanh nhất để đưa web lên internet — miễn phí.</p>
     </div>
 
-    <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div class="p-6 md:p-8 space-y-6">
-            <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col gap-4">
-                <div class="flex justify-between items-center">
-                    <label class="text-sm font-medium text-slate-300 flex items-center gap-2">
-                        <i data-lucide="globe" class="w-4 h-4 text-blue-400"></i>
-                        Danh sách URL cần giữ hoạt động (Mỗi URL 1 dòng, tối đa 100 web)
-                    </label>
-                    <span id="url-count" class="text-xs bg-blue-500/20 text-blue-400 font-semibold px-2.5 py-1 rounded-full border border-blue-500/30">
-                        0 / 100 URLs
-                    </span>
-                </div>
-                
-                <textarea id="urls-input" rows="6" placeholder="https://app-1.onrender.com&#10;https://app-2.onrender.com&#10;https://app-3.herokuapp.com"
-                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm leading-relaxed transition-all resize-y"
-                    title="Mỗi dòng là một link trang web"></textarea>
+    <div class="card p-6 md:p-8 reveal">
+      <!-- Tabs -->
+      <div class="flex gap-2 p-1 bg-ink-100 rounded-xl w-fit mb-6">
+        <button class="tab-btn active" data-tab="github">🔗 Kết nối GitHub</button>
+        <button class="tab-btn" data-tab="manual">📝 Dán code tay</button>
+      </div>
 
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-800/80">
-                    <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <label class="text-sm font-medium text-slate-400 flex items-center gap-2 whitespace-nowrap">
-                            <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
-                            Chu kỳ lặp (Phút):
-                        </label>
-                        <input type="number" id="interval-input" value="4" min="1" step="0.5"
-                            class="w-24 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-center font-bold text-emerald-400" />
-                    </div>
-                    
-                    <span class="text-xs text-slate-500 italic">
-                        *Dữ liệu và trạng thái tự động lưu vào trình duyệt (Không sợ mất khi F5).
-                    </span>
-                </div>
-            </div>
-
-            <button id="toggle-btn" onclick="togglePing()"
-                class="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:from-blue-500 hover:to-emerald-500 shadow-blue-500/25">
-                <i data-lucide="play" id="btn-icon" class="w-5 h-5 fill-current"></i>
-                <span id="btn-text">Bắt đầu Auto Ping</span>
-            </button>
-
-            <div class="flex items-start gap-3 text-sm text-slate-400 bg-slate-800/30 p-4 rounded-lg border border-slate-700/50">
-                <i data-lucide="zap" class="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5"></i>
-                <p>
-                    <strong>Cơ chế tự động khôi phục:</strong> Nếu bạn lỡ đóng tab hoặc lỡ tay F5, khi mở lại trang này, hệ thống sẽ <strong>tự động chạy tiếp</strong> luôn mà không cần bạn bấm nút lại! (Nhưng lưu ý: Phải giữ tab mở thì mới chạy liên tục được nhé).
-                </p>
-            </div>
+      <!-- GitHub tab -->
+      <div id="tab-github" class="tab-panel">
+        <label class="block text-sm font-semibold text-ink-800 mb-2">Link repository GitHub</label>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input id="gh-url" type="url" class="field flex-1" placeholder="https://github.com/username/my-awesome-app" />
+          <select id="gh-branch" class="field sm:w-40">
+            <option>main</option><option>master</option><option>develop</option>
+          </select>
         </div>
-
-        <div class="bg-[#0c0c0c] border-t border-slate-800 p-4">
-            <div class="flex items-center justify-between mb-3 px-2">
-                <h3 class="text-sm font-semibold text-slate-400 flex items-center gap-2">
-                    <i data-lucide="terminal" class="w-4 h-4"></i> Nhật ký hệ thống (Logs)
-                </h3>
-                <button onclick="clearLogs()" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
-                    Xóa lịch sử
-                </button>
-            </div>
-            
-            <div id="logs-container" class="bg-black/60 rounded-lg p-4 h-64 overflow-y-auto font-mono text-xs md:text-sm border border-slate-800/80 shadow-inner space-y-1.5">
-                <div id="empty-log" class="h-full flex items-center justify-center text-slate-600 italic">
-                    Chưa có nhật ký hoạt động nào. Hãy ấn Bắt đầu!
-                </div>
-            </div>
+        <div class="grid sm:grid-cols-3 gap-3 mt-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">Runtime</label>
+            <select class="field" id="gh-runtime">
+              <option>Node.js 20</option><option>Node.js 18</option><option>Python 3.12</option><option>Bun 1.x</option><option>Deno 2</option><option>Static HTML</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">Build command</label>
+            <input class="field font-mono text-xs" value="npm install && npm run build" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">Start command</label>
+            <input class="field font-mono text-xs" value="node server.js" />
+          </div>
         </div>
+        <div class="grid sm:grid-cols-2 gap-3 mt-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">Tên subdomain</label>
+            <div class="flex items-center">
+              <input id="gh-slug" class="field rounded-r-none" placeholder="my-app" />
+              <span class="field rounded-l-none border-l-0 bg-ink-100 text-ink-500 whitespace-nowrap">.vantashield.app</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">Region</label>
+            <select class="field" id="gh-region">
+              <option>🇸🇬 Singapore</option><option>🇩🇪 Frankfurt</option><option>🇺🇸 Virginia</option><option>🇯🇵 Tokyo</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 mt-6">
+          <button class="btn btn-brand" onclick="deployFromGithub()">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 007.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.2-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.6.24 2.78.12 3.08.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.26 5.68.41.36.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.5 11.5 0 0023.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>
+            Deploy từ GitHub
+          </button>
+          <span class="text-xs text-ink-500">Auto redeploy khi bạn push commit mới.</span>
+        </div>
+      </div>
+
+      <!-- Manual tab -->
+      <div id="tab-manual" class="tab-panel hidden">
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink-800 mb-2">server.js</label>
+            <textarea id="code-server" class="field code-field" rows="12">const http = require('http');
+const port = process.env.PORT || 3000;
+
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end('&lt;h1&gt;Hello from VANTASHIELD!&lt;/h1&gt;');
+}).listen(port, () => console.log('running on ' + port));</textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink-800 mb-2">package.json</label>
+            <textarea id="code-pkg" class="field code-field" rows="12">{
+  "name": "my-app",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}</textarea>
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3 mt-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">Tên subdomain</label>
+            <div class="flex items-center">
+              <input id="mn-slug" class="field rounded-r-none" placeholder="my-project" />
+              <span class="field rounded-l-none border-l-0 bg-ink-100 text-ink-500 whitespace-nowrap">.vantashield.app</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-600 mb-1.5">ENV vars (KEY=VALUE, mỗi dòng)</label>
+            <input class="field font-mono text-xs" placeholder="API_KEY=xxxxx" />
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 mt-6">
+          <button class="btn btn-brand" onclick="deployFromCode()">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+            Deploy code này
+          </button>
+          <span class="text-xs text-ink-500">Sandbox cách ly — không ảnh hưởng web khác.</span>
+        </div>
+      </div>
     </div>
+  </div>
+</section>
 
-    <script>
-        lucide.createIcons();
-        
-        // Cấu hình Key lưu trữ cục bộ dữ liệu
-        const STORAGE_KEY_URLS = 'rka_urls_v2';
-        const STORAGE_KEY_INTERVAL = 'rka_interval_v2';
-        const STORAGE_KEY_RUNNING = 'rka_is_running_v2';
+<!-- FEATURES -->
+<section id="features" class="py-20 lg:py-24 bg-white/60 border-y border-ink-200/60">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+      <span class="chip mb-4">Mọi thứ bạn cần</span>
+      <h2 class="font-display text-4xl md:text-5xl font-bold text-ink-900">Đầy đủ tính năng như Render, và hơn thế</h2>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- feature cards -->
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v6H4zM4 14h16v6H4z"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="17" r="1" fill="currentColor"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Auto Deploy từ GitHub</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Push commit là build và go-live tự động. Preview URL cho mỗi PR.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">SSL & DDoS miễn phí</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">HTTPS tự động renew, Web Application Firewall bảo vệ 24/7.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">CDN toàn cầu</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Edge caching ở 30+ khu vực, tốc độ tải &lt; 100ms toàn cầu.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Autoscaling thông minh</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Tự tăng instance khi traffic cao, giảm về 0 khi rảnh — tiết kiệm chi phí.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.17L4 17.17V4z"/><path d="M8 9h8M8 13h5"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Logs & metrics realtime</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Xem log stream ngay lập tức, biểu đồ CPU/RAM/RPS trực quan.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Database & Storage</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">PostgreSQL, Redis, Object storage — provision 1 click, backup hằng ngày.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Custom domain</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Kết nối domain riêng của bạn với SSL tự động chỉ với 1 CNAME.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Cron jobs & Workers</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Chạy background job theo lịch, không cần server riêng.</p>
+      </div>
+      <div class="card p-6 reveal">
+        <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 grid place-items-center mb-4">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-ink-900">Sandbox cách ly</h3>
+        <p class="text-sm text-ink-600 mt-2 leading-relaxed">Mỗi web chạy trong container riêng — không ảnh hưởng lẫn nhau.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-        let isRunning = false;
-        let intervalId = null;
-        let logsCount = 0;
+<!-- DASHBOARD DEMO -->
+<section id="dashboard" class="py-20 lg:py-24">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8">
+    <div class="flex flex-wrap items-end justify-between mb-8 gap-4 reveal">
+      <div>
+        <span class="chip mb-3">Dashboard của bạn</span>
+        <h2 class="font-display text-3xl md:text-4xl font-bold text-ink-900">Web đang chạy</h2>
+        <p class="text-ink-600 mt-2 text-sm">Danh sách các web bạn đã deploy (Lưu vào điện thoại).</p>
+      </div>
+      <button onclick="scrollTo({top:document.getElementById('deploy').offsetTop-60,behavior:'smooth'})" class="btn btn-primary">+ Deploy web mới</button>
+    </div>
+    <div id="sites-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 reveal"></div>
+    <div id="sites-empty" class="card p-10 text-center text-ink-500 hidden">
+      <div class="text-4xl mb-3">🚀</div>
+      <p class="font-medium">Chưa có web nào. Bạn cần đăng nhập và deploy web đầu tiên ở phía trên nhé!</p>
+    </div>
+  </div>
+</section>
 
-        const urlsInput = document.getElementById('urls-input');
-        const intervalInput = document.getElementById('interval-input');
-        const toggleBtn = document.getElementById('toggle-btn');
-        const btnText = document.getElementById('btn-text');
-        const logsContainer = document.getElementById('logs-container');
-        const emptyLog = document.getElementById('empty-log');
-        const statusIcon = document.getElementById('status-icon');
-        const urlCountSpan = document.getElementById('url-count');
+<!-- PRICING -->
+<section id="pricing" class="py-20 lg:py-24 bg-white/60 border-y border-ink-200/60">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+      <span class="chip mb-4">Giá minh bạch</span>
+      <h2 class="font-display text-4xl md:text-5xl font-bold text-ink-900">Bắt đầu miễn phí, scale khi cần</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="card p-7 reveal">
+        <div class="text-sm font-semibold text-ink-500">Free</div>
+        <div class="mt-3"><span class="font-display text-4xl font-bold">$0</span><span class="text-ink-500">/tháng</span></div>
+        <p class="text-sm text-ink-600 mt-2">Cho hobby & thử nghiệm.</p>
+        <ul class="mt-5 space-y-2.5 text-sm text-ink-700">
+          <li>✓ 3 web app</li><li>✓ 512MB RAM / web</li><li>✓ SSL + CDN</li><li>✓ Auto deploy GitHub</li><li>✓ Sleep sau 15 phút idle</li>
+        </ul>
+        <button class="btn btn-ghost w-full mt-6">Bắt đầu miễn phí</button>
+      </div>
+      <div class="card p-7 reveal relative" style="border-color:#4453e6;box-shadow:0 20px 50px -18px rgba(91,108,255,.4)">
+        <span class="chip absolute -top-3 left-1/2 -translate-x-1/2 bg-ink-900 text-white border-ink-900">Phổ biến</span>
+        <div class="text-sm font-semibold text-brand-600">Pro</div>
+        <div class="mt-3"><span class="font-display text-4xl font-bold">$9</span><span class="text-ink-500">/tháng</span></div>
+        <p class="text-sm text-ink-600 mt-2">Cho web production 24/7.</p>
+        <ul class="mt-5 space-y-2.5 text-sm text-ink-700">
+          <li>✓ Không giới hạn web</li><li>✓ 2GB RAM / web</li><li>✓ Chạy 24/7 không sleep</li><li>✓ Custom domain</li><li>✓ Priority build queue</li><li>✓ Logs retention 30 ngày</li>
+        </ul>
+        <button class="btn btn-brand w-full mt-6">Chọn Pro</button>
+      </div>
+      <div class="card p-7 reveal">
+        <div class="text-sm font-semibold text-ink-500">Team</div>
+        <div class="mt-3"><span class="font-display text-4xl font-bold">$29</span><span class="text-ink-500">/tháng</span></div>
+        <p class="text-sm text-ink-600 mt-2">Cho team & doanh nghiệp.</p>
+        <ul class="mt-5 space-y-2.5 text-sm text-ink-700">
+          <li>✓ Mọi thứ ở Pro</li><li>✓ Collaboration & RBAC</li><li>✓ 8GB RAM / web</li><li>✓ Autoscaling</li><li>✓ SSO + audit log</li><li>✓ Support 24/7</li>
+        </ul>
+        <button class="btn btn-ghost w-full mt-6">Liên hệ sales</button>
+      </div>
+    </div>
+  </div>
+</section>
 
-        // Theo dõi người dùng nhập liệu để tự động lưu
-        urlsInput.addEventListener('input', () => {
-            updateUrlCount();
-            saveSettings();
-        });
+<!-- DOCS / FAQ -->
+<section id="docs" class="py-20 lg:py-24">
+  <div class="max-w-4xl mx-auto px-5 lg:px-8">
+    <div class="text-center mb-12 reveal">
+      <span class="chip mb-4">FAQ</span>
+      <h2 class="font-display text-4xl font-bold text-ink-900">Câu hỏi thường gặp</h2>
+    </div>
+    <div class="space-y-3 reveal">
+      <details class="card p-5"><summary class="flex items-center justify-between"><span class="font-semibold text-ink-900">Web tôi deploy có ảnh hưởng đến web khác không?</span><svg class="chev w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary><p class="mt-3 text-sm text-ink-600">Không. Mỗi web chạy trong container Linux cách ly hoàn toàn (namespace + cgroup), không share process hay filesystem với web khác.</p></details>
+      <details class="card p-5"><summary class="flex items-center justify-between"><span class="font-semibold text-ink-900">Cần trả phí gì để chạy 24/7?</span><svg class="chev w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary><p class="mt-3 text-sm text-ink-600">Gói Free sleep sau 15 phút không có traffic. Nâng lên Pro ($9/tháng) để web sống 24/7 không sleep.</p></details>
+      <details class="card p-5"><summary class="flex items-center justify-between"><span class="font-semibold text-ink-900">Hỗ trợ ngôn ngữ nào?</span><svg class="chev w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary><p class="mt-3 text-sm text-ink-600">Node.js, Bun, Deno, Python, Go, Ruby, PHP, Rust, Static HTML — hoặc bất kỳ Docker image nào.</p></details>
+      <details class="card p-5"><summary class="flex items-center justify-between"><span class="font-semibold text-ink-900">Auto deploy hoạt động thế nào?</span><svg class="chev w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary><p class="mt-3 text-sm text-ink-600">Sau khi kết nối GitHub, mọi commit push vào branch được chọn sẽ trigger build và deploy tự động. Mỗi PR có preview URL riêng.</p></details>
+      <details class="card p-5"><summary class="flex items-center justify-between"><span class="font-semibold text-ink-900">Có backup database không?</span><svg class="chev w-4 h-4 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary><p class="mt-3 text-sm text-ink-600">Có. PostgreSQL managed backup hằng ngày, giữ 7 ngày (Free), 30 ngày (Pro), 90 ngày (Team).</p></details>
+    </div>
+  </div>
+</section>
 
-        intervalInput.addEventListener('change', saveSettings);
+<!-- CTA -->
+<section class="py-20">
+  <div class="max-w-5xl mx-auto px-5 lg:px-8 reveal">
+    <div class="card p-10 md:p-14 text-center relative overflow-hidden" style="background:linear-gradient(135deg,#1e2026,#2f3239);border-color:#2f3239">
+      <div class="blob" style="width:300px;height:300px;background:#5b6cff;top:-80px;right:-40px;opacity:.35"></div>
+      <h2 class="font-display text-4xl md:text-5xl font-bold text-white relative">Sẵn sàng đưa web lên internet?</h2>
+      <p class="text-ink-300 mt-4 max-w-xl mx-auto relative">Miễn phí forever. Không cần thẻ tín dụng. 30 giây có URL live.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3 relative">
+        <a href="#deploy" class="btn btn-brand">Deploy ngay →</a>
+        <a href="#docs" class="btn btn-ghost">Xem tài liệu</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-        function updateUrlCount() {
-            const urls = getUrlList();
-            urlCountSpan.innerText = `${urls.length} / 100 URLs`;
-            if (urls.length > 100) {
-                urlCountSpan.className = "text-xs bg-red-500/20 text-red-400 font-semibold px-2.5 py-1 rounded-full border border-red-500/30";
-            } else {
-                urlCountSpan.className = "text-xs bg-blue-500/20 text-blue-400 font-semibold px-2.5 py-1 rounded-full border border-blue-500/30";
-            }
-        }
+<!-- FOOTER -->
+<footer class="border-t border-ink-200/70 bg-white/60">
+  <div class="max-w-7xl mx-auto px-5 lg:px-8 py-12 grid md:grid-cols-4 gap-8">
+    <div class="md:col-span-2">
+      <div class="flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-ink-900 to-brand-600 grid place-items-center">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4z"/></svg>
+        </span>
+        <span class="font-display font-bold text-ink-900">VANTASHIELD.COM</span>
+      </div>
+      <p class="text-sm text-ink-500 mt-3 max-w-sm">Nền tảng deploy web hiện đại. Kết nối GitHub, chạy 24/7, SSL & CDN miễn phí.</p>
+    </div>
+    <div>
+      <div class="text-xs font-bold text-ink-500 uppercase tracking-wider mb-3">Sản phẩm</div>
+      <ul class="space-y-2 text-sm text-ink-600"><li><a href="#deploy" class="hover:text-ink-900">Deploy</a></li><li><a href="#features" class="hover:text-ink-900">Tính năng</a></li><li><a href="#pricing" class="hover:text-ink-900">Giá</a></li></ul>
+    </div>
+    <div>
+      <div class="text-xs font-bold text-ink-500 uppercase tracking-wider mb-3">Công ty</div>
+      <ul class="space-y-2 text-sm text-ink-600"><li><a href="#" class="hover:text-ink-900">Về chúng tôi</a></li><li><a href="#" class="hover:text-ink-900">Blog</a></li><li><a href="#" class="hover:text-ink-900">Liên hệ</a></li></ul>
+    </div>
+  </div>
+  <div class="border-t border-ink-200/70 py-5 text-center text-xs text-ink-500">
+    © 2026 VANTASHIELD.COM · Made with ♥ in Vietnam
+  </div>
+</footer>
 
-        // Tách danh sách link dựa trên xuống dòng
-        function getUrlList() {
-            return urlsInput.value
-                .split('\n')
-                .map(u => u.trim())
-                .filter(u => u !== '')
-                .slice(0, 100); // Ngưỡng tối đa 100 trang web cùng lúc
-        }
+<!-- Modals -->
 
-        function saveSettings() {
-            localStorage.setItem(STORAGE_KEY_URLS, urlsInput.value);
-            localStorage.setItem(STORAGE_KEY_INTERVAL, intervalInput.value);
-        }
+<!-- Logs Modal -->
+<div id="logs-modal" class="modal-overlay" onclick="if(event.target===this)closeLogs()">
+  <div class="modal p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 id="modal-title" class="font-display font-bold text-xl text-ink-900">Logs</h3>
+        <p id="modal-sub" class="text-xs text-ink-500 mt-1"></p>
+      </div>
+      <button class="btn btn-ghost !p-2" onclick="closeLogs()">✕</button>
+    </div>
+    <div id="modal-logs" class="bg-ink-900 rounded-xl p-4 max-h-[60vh] overflow-auto scroll-hide"></div>
+    <div class="mt-4 flex flex-wrap gap-2 justify-end">
+      <button class="btn btn-ghost" onclick="restartSite()">↻ Restart</button>
+      <button class="btn btn-ghost text-rose" style="color:#f43f5e" onclick="deleteSite()">🗑 Xoá</button>
+    </div>
+  </div>
+</div>
 
-        function getLogColor(type) {
-            switch (type) {
-                case 'success': return 'text-emerald-400';
-                case 'error': return 'text-rose-400';
-                case 'system': return 'text-cyan-400 font-bold';
-                case 'pending': return 'text-amber-400';
-                default: return 'text-slate-300';
-            }
-        }
+<!-- Auth Modal (Đăng nhập / Đăng ký) -->
+<div id="auth-modal" class="modal-overlay" onclick="if(event.target===this)closeAuth()">
+  <div class="modal p-6" style="max-width: 400px;">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-display font-bold text-xl text-ink-900">Đăng nhập / Đăng ký</h3>
+      <button class="btn btn-ghost !p-2" onclick="closeAuth()">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-ink-800 mb-1.5">Tên tài khoản</label>
+        <input id="auth-user" type="text" class="field" placeholder="Nhập tên đăng nhập duy nhất" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-ink-800 mb-1.5">Mật khẩu</label>
+        <input id="auth-pass" type="password" class="field" placeholder="Nhập mật khẩu" />
+      </div>
+      <div id="auth-error" class="text-xs font-bold text-rose hidden"></div>
+    </div>
+    <div class="mt-6 flex gap-3">
+      <button class="btn btn-ghost flex-1" onclick="handleAuth('register')">Tạo tài khoản</button>
+      <button class="btn btn-brand flex-1" onclick="handleAuth('login')">Đăng nhập</button>
+    </div>
+  </div>
+</div>
 
-        function addLog(message, type = 'info') {
-            if (logsCount === 0 && emptyLog) emptyLog.style.display = 'none';
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('vi-VN', { hour12: false });
-            const logDiv = document.createElement('div');
-            logDiv.className = `flex gap-3 leading-relaxed break-all ${getLogColor(type)}`;
-            logDiv.innerHTML = `<span class="text-slate-600 flex-shrink-0">[${timeString}]</span><span>${message}</span>`;
-            logsContainer.appendChild(logDiv);
-            logsContainer.scrollTop = logsContainer.scrollHeight;
-            logsCount++;
-        }
+<!-- Edit Modal (Chỉnh sửa code tay) -->
+<div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeEdit()">
+  <div class="modal p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="font-display font-bold text-xl text-ink-900">Chỉnh sửa source code</h3>
+        <p class="text-xs text-ink-500 mt-1">Sửa đổi server.js hoặc package.json</p>
+      </div>
+      <button class="btn btn-ghost !p-2" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm font-semibold text-ink-800 mb-2">Mã nguồn</label>
+      <textarea id="edit-code-area" class="field code-field" rows="12"></textarea>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button class="btn btn-ghost" onclick="closeEdit()">Hủy</button>
+      <button class="btn btn-brand" onclick="saveEdit()">Lưu lại</button>
+    </div>
+  </div>
+</div>
 
-        function clearLogs() {
-            logsContainer.innerHTML = '';
-            logsCount = 0;
-            const div = document.createElement('div');
-            div.id = 'empty-log';
-            div.className = 'h-full flex items-center justify-center text-slate-600 italic';
-            div.innerText = 'Đã xóa lịch sử.';
-            logsContainer.appendChild(div);
-        }
+<!-- Toast -->
+<div id="toast" class="toast"></div>
 
-        // Tiến trình ping tuần tự có độ trễ nhỏ để tránh đơ tab khi gọi 100 web cùng lúc
-        async function pingAllServers() {
-            const urls = getUrlList();
-            if (urls.length === 0) return;
+<script>
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-            addLog(`⚡ Bắt đầu tiến trình ping đồng loạt cho ${urls.length} máy chủ...`, 'system');
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+    });
+  });
 
-            for (let i = 0; i < urls.length; i++) {
-                if (!isRunning) break; // Dừng ngay lập tức nếu ấn nút tắt giữa chừng
-                let targetUrl = urls[i];
-                if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-                    targetUrl = 'https://' + targetUrl;
-                }
+  // Toast
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(window.__tt); window.__tt = setTimeout(() => t.classList.remove('show'), 2400);
+  }
 
-                try {
-                    const urlObj = new URL(targetUrl);
-                    urlObj.searchParams.set('_ping_id', Date.now()); // Tránh bị dính cache trình duyệt
-                    
-                    // Gửi request ngầm
-                    fetch(urlObj.toString(), { method: 'GET', mode: 'no-cors', cache: 'no-store' })
-                        .catch(() => {}); // Bỏ qua lỗi CORS (máy chủ đích vẫn nhận được tín hiệu)
+  // Khai báo DB Storage
+  const DB_USERS = 'vanta_users_v1';
+  const DB_SITES = 'vanta_sites_v2';
+  
+  let currentUser = sessionStorage.getItem('vantaActiveUser');
 
-                    addLog(`[${i + 1}/${urls.length}] Đã kích hoạt: ${targetUrl}`, 'success');
-                } catch (e) {
-                    addLog(`[${i + 1}/${urls.length}] Lỗi cú pháp URL: ${targetUrl}`, 'error');
-                }
+  // Load/Save Sites
+  const loadSites = () => JSON.parse(localStorage.getItem(DB_SITES) || '[]');
+  const saveSites = (s) => localStorage.setItem(DB_SITES, JSON.stringify(s));
 
-                // Nghỉ 150ms giữa mỗi link để trình duyệt chạy mượt, không bị lag máy
-                await new Promise(resolve => setTimeout(resolve, 150));
-            }
-            
-            if (isRunning) {
-                addLog(`🎉 Hoàn tất lượt ping. Đang chờ chu kỳ tiếp theo...`, 'system');
-            }
-        }
+  // Auth Functions
+  function openAuth() { document.getElementById('auth-modal').classList.add('show'); document.getElementById('auth-error').classList.add('hidden'); }
+  function closeAuth() { document.getElementById('auth-modal').classList.remove('show'); }
+  
+  function handleAuth(action) {
+    const user = document.getElementById('auth-user').value.trim();
+    const pass = document.getElementById('auth-pass').value.trim();
+    const err = document.getElementById('auth-error');
+    
+    if(!user || !pass) { err.textContent = 'Vui lòng nhập đủ tên và mật khẩu'; err.classList.remove('hidden'); return; }
+    
+    let users = JSON.parse(localStorage.getItem(DB_USERS) || '{}');
+    
+    if(action === 'register') {
+      if(users[user]) { err.textContent = 'Tên tài khoản bị trùng, vui lòng chọn tên khác!'; err.classList.remove('hidden'); return; }
+      users[user] = pass;
+      localStorage.setItem(DB_USERS, JSON.stringify(users));
+      toast('Tạo tài khoản thành công!');
+    } else {
+      if(users[user] !== pass) { err.textContent = 'Sai tên đăng nhập hoặc mật khẩu!'; err.classList.remove('hidden'); return; }
+      toast('Đăng nhập thành công!');
+    }
+    
+    currentUser = user;
+    sessionStorage.setItem('vantaActiveUser', user);
+    closeAuth();
+    updateHeaderUI();
+    renderSites();
+  }
 
-        function setRunningState(running) {
-            isRunning = running;
-            localStorage.setItem(STORAGE_KEY_RUNNING, running ? 'true' : 'false');
-            urlsInput.disabled = running;
-            intervalInput.disabled = running;
+  function logout() {
+    currentUser = null;
+    sessionStorage.removeItem('vantaActiveUser');
+    updateHeaderUI();
+    renderSites();
+    toast('Đã đăng xuất');
+  }
 
-            if (running) {
-                toggleBtn.className = "w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] bg-rose-500/10 text-rose-500 border border-rose-500/50 hover:bg-rose-500/20";
-                btnText.innerText = "Dừng Auto Ping";
-                toggleBtn.innerHTML = `<i data-lucide="square" class="w-5 h-5 fill-current"></i> <span>Dừng Auto Ping</span>`;
-                statusIcon.className = "w-10 h-10 text-emerald-500 animate-pulse";
-            } else {
-                toggleBtn.className = "w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:from-blue-500 hover:to-emerald-500 shadow-blue-500/25";
-                btnText.innerText = "Bắt đầu Auto Ping";
-                toggleBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5 fill-current"></i> <span>Bắt đầu Auto Ping</span>`;
-                statusIcon.className = "w-10 h-10 text-blue-500";
-            }
-            lucide.createIcons();
-        }
+  function updateHeaderUI() {
+    const btnLogin = document.getElementById('btn-login');
+    const userInfo = document.getElementById('user-info');
+    if(currentUser) {
+      btnLogin.classList.add('hidden');
+      userInfo.classList.remove('hidden');
+      userInfo.classList.add('flex');
+      document.getElementById('display-username').textContent = `👤 ${currentUser}`;
+    } else {
+      btnLogin.classList.remove('hidden');
+      userInfo.classList.add('hidden');
+      userInfo.classList.remove('flex');
+    }
+  }
 
-        function togglePing() {
-            if (!isRunning) {
-                const urls = getUrlList();
-                if (urls.length === 0) {
-                    addLog('Vui lòng nhập ít nhất 1 địa chỉ web.', 'error');
-                    return;
-                }
-                const minutes = parseFloat(intervalInput.value);
-                if (isNaN(minutes) || minutes <= 0) {
-                    addLog('Lỗi: Thời gian chu kỳ phải lớn hơn 0.', 'error');
-                    return;
-                }
+  function slugify(v) {
+    return (v || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || ('app-' + Math.random().toString(36).slice(2, 6));
+  }
 
-                saveSettings();
-                setRunningState(true);
+  function renderSites() {
+    const grid = document.getElementById('sites-grid');
+    const empty = document.getElementById('sites-empty');
+    
+    if(!currentUser) {
+      grid.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
 
-                addLog(`=== HỆ THỐNG KÍCH HOẠT THÀNH CÔNG (${urls.length} WEB) ===`, 'system');
-                addLog(`Chu kỳ tự động gọi: Mỗi ${minutes} phút.`, 'system');
-                
-                pingAllServers();
-                intervalId = setInterval(() => {
-                    pingAllServers();
-                }, minutes * 60 * 1000);
-            } else {
-                clearInterval(intervalId);
-                setRunningState(false);
-                addLog('=== HỆ THỐNG ĐÃ DỪNG HOẠT ĐỘNG (Bấm nút mới dừng) ===', 'system');
-            }
-        }
+    const allSites = loadSites();
+    // Lọc web theo owner hiện tại
+    const mySites = allSites.filter(s => s.owner === currentUser);
+    
+    grid.innerHTML = '';
+    if (!mySites.length) { empty.classList.remove('hidden'); return; }
+    
+    empty.classList.add('hidden');
+    mySites.forEach(s => {
+      const statusColor = s.status === 'live' ? 'bg-mint' : s.status === 'building' ? 'bg-amber' : 'bg-rose';
+      const statusText = s.status === 'live' ? 'LIVE' : s.status === 'building' ? 'BUILDING' : 'STOPPED';
+      const url = `${s.name}.vantashield.app`;
+      const el = document.createElement('div');
+      el.className = 'card p-5 cursor-pointer flex flex-col justify-between';
+      el.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="chip"><span class="dot ${statusColor} ${s.status==='live'?'live-dot':''}"></span>${statusText}</span>
+            <span class="text-xs text-ink-500">${s.region}</span>
+          </div>
+          <h4 class="font-display font-bold text-ink-900 truncate">${s.name}</h4>
+          <div class="text-xs text-ink-500 font-mono truncate mt-1">${url}</div>
+          <div class="text-xs text-ink-500 mt-3 flex items-center gap-1.5">
+            ${s.source === 'github'
+              ? `<svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12a11.5 11.5 0 007.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.2-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.6.24 2.78.12 3.08.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.26 5.68.41.36.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.5 11.5 0 0023.5 12C23.5 5.7 18.3.5 12 .5z"/></svg> ${s.repo}`
+              : `📝 Code tay`}
+          </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-ink-100 flex flex-wrap gap-2">
+          <button class="btn btn-ghost !py-1 !px-2 !text-xs flex-1" onclick="event.stopPropagation();copyWebLink('${url}')">🔗 Copy Link</button>
+          <button class="btn btn-ghost !py-1 !px-2 !text-xs flex-1" onclick="event.stopPropagation();openLogs('${s.id}')">📋 Logs</button>
+          ${s.source === 'manual' ? `<button class="btn btn-ghost !py-1 !px-2 !text-xs flex-1" onclick="event.stopPropagation();editSite('${s.id}')">✏️ Sửa code</button>` : ''}
+          <button class="btn btn-danger !py-1 !px-2 !text-xs" onclick="event.stopPropagation();triggerDelete('${s.id}')">🗑</button>
+        </div>`;
+      el.addEventListener('click', () => openLogs(s.id));
+      grid.appendChild(el);
+    });
+  }
 
-        // Tự động tải lại dữ liệu cũ và khôi phục trạng thái (Auto-Resume) khi bật trang
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedUrls = localStorage.getItem(STORAGE_KEY_URLS);
-            const savedInterval = localStorage.getItem(STORAGE_KEY_INTERVAL);
-            const savedRunning = localStorage.getItem(STORAGE_KEY_RUNNING);
+  // Deploy actions
+  function addSite(site) {
+    const list = loadSites(); list.unshift(site); saveSites(list); renderSites();
+  }
 
-            if (savedUrls !== null) urlsInput.value = savedUrls;
-            if (savedInterval !== null) intervalInput.value = savedInterval;
-            
-            updateUrlCount();
+  function fakeBuildLogs(name, source, repo) {
+    return [
+      { c: 'cmd', t: `$ vanta deploy ${source === 'github' ? '--repo ' + repo : '--from-code'}` },
+      { c: 'info', t: '→ Provisioning isolated container...' },
+      { c: 'ok',   t: '✓ Container ready (id: c_' + Math.random().toString(36).slice(2, 8) + ')' },
+      { c: 'info', t: source === 'github' ? '→ Cloning repository...' : '→ Uploading source files...' },
+      { c: 'ok',   t: '✓ Source ready' },
+      { c: 'info', t: '→ Installing dependencies (npm ci)' },
+      { c: 'ok',   t: '✓ Dependencies installed in 6.4s' },
+      { c: 'info', t: '→ Building container image' },
+      { c: 'ok',   t: '✓ Image built · 72 MB' },
+      { c: 'info', t: '→ Deploying to edge...' },
+      { c: 'ok',   t: '✓ Health check passed (200 OK in 42ms)' },
+      { c: 'ok',   t: '✓ SSL certificate issued' },
+      { c: 'cmd',  t: `🌐 https://${name}.vantashield.app` },
+      { c: 'ok',   t: '✓ Deploy successful · running 24/7' },
+    ];
+  }
 
-            // Nếu phiên làm việc trước đang chạy, tự động kích hoạt chạy tiếp luôn!
-            if (savedRunning === 'true') {
-                addLog('Phát hiện trạng thái Đang Chạy trước đó. Tự động khôi phục tiến trình...', 'pending');
-                setTimeout(() => {
-                    togglePing();
-                }, 600);
-            }
-        });
-    </script>
+  function deployFromGithub() {
+    if(!currentUser) { openAuth(); toast('Vui lòng đăng nhập trước khi deploy'); return; }
+    
+    const url = document.getElementById('gh-url').value.trim();
+    if (!url) { toast('Nhập link GitHub trước nhé'); return; }
+    const m = url.match(/github\.com\/([^\/]+\/[^\/\s?#]+)/i);
+    const repo = m ? m[1].replace(/\.git$/, '') : 'user/repo';
+    const slug = slugify(document.getElementById('gh-slug').value || repo.split('/').pop());
+    const region = document.getElementById('gh-region').value;
+    const id = 'st_' + Date.now();
+    
+    // Check duplicate URL globally on device
+    const allSites = loadSites();
+    if(allSites.some(s => s.name === slug)) { toast('Tên subdomain đã tồn tại!'); return; }
+
+    addSite({ id, owner: currentUser, name: slug, source: 'github', repo, status: 'building', region, createdAt: Date.now() });
+    toast('🚀 Đang deploy ' + slug + '.vantashield.app');
+    openLogs(id, true);
+    setTimeout(() => {
+      const list = loadSites();
+      const s = list.find(x => x.id === id); if (s) { s.status = 'live'; saveSites(list); renderSites(); }
+    }, 6500);
+  }
+
+  function deployFromCode() {
+    if(!currentUser) { openAuth(); toast('Vui lòng đăng nhập trước khi deploy'); return; }
+
+    const slug = slugify(document.getElementById('mn-slug').value || 'project');
+    const id = 'st_' + Date.now();
+    const codeData = document.getElementById('code-server').value;
+    
+    const allSites = loadSites();
+    if(allSites.some(s => s.name === slug)) { toast('Tên subdomain đã tồn tại!'); return; }
+
+    addSite({ id, owner: currentUser, name: slug, source: 'manual', code: codeData, status: 'building', region: '🇸🇬 SIN', createdAt: Date.now() });
+    toast('🚀 Đang deploy ' + slug + '.vantashield.app');
+    openLogs(id, true);
+    setTimeout(() => {
+      const list = loadSites();
+      const s = list.find(x => x.id === id); if (s) { s.status = 'live'; saveSites(list); renderSites(); }
+    }, 6500);
+  }
+
+  // Chức năng Thêm: Copy, Sửa Code, Xóa (trực tiếp)
+  function copyWebLink(url) {
+    navigator.clipboard.writeText('https://' + url).then(() => {
+      toast('📋 Đã copy link: ' + url);
+    });
+  }
+
+  let editingId = null;
+  function editSite(id) {
+    const site = loadSites().find(x => x.id === id);
+    if(!site || site.source !== 'manual') return;
+    editingId = id;
+    document.getElementById('edit-code-area').value = site.code || '';
+    document.getElementById('edit-modal').classList.add('show');
+  }
+
+  function closeEdit() { document.getElementById('edit-modal').classList.remove('show'); editingId = null; }
+  
+  function saveEdit() {
+    if(!editingId) return;
+    let list = loadSites();
+    let site = list.find(x => x.id === editingId);
+    if(site) {
+      site.code = document.getElementById('edit-code-area').value;
+      saveSites(list);
+      toast('💾 Đã lưu thay đổi code!');
+      closeEdit();
+    }
+  }
+
+  function triggerDelete(id) {
+    currentSiteId = id;
+    deleteSite();
+  }
+
+  // Logs modal
+  let currentSiteId = null;
+  function openLogs(id, streaming = false) {
+    const site = loadSites().find(x => x.id === id); if (!site) return;
+    currentSiteId = id;
+    document.getElementById('modal-title').textContent = site.name + '.vantashield.app';
+    document.getElementById('modal-sub').textContent = (site.source === 'github' ? 'GitHub · ' + site.repo : 'Manual deploy') + ' · ' + site.region;
+    const box = document.getElementById('modal-logs'); box.innerHTML = '';
+    document.getElementById('logs-modal').classList.add('show');
+    const logs = fakeBuildLogs(site.name, site.source, site.repo);
+    if (streaming) {
+      let i = 0;
+      const tick = () => {
+        if (i >= logs.length) return;
+        const l = logs[i++];
+        const d = document.createElement('div');
+        d.className = 'log-line log-' + l.c; d.textContent = l.t; box.appendChild(d); box.scrollTop = box.scrollHeight;
+        setTimeout(tick, 400 + Math.random() * 300);
+      };
+      tick();
+    } else {
+      logs.forEach(l => { const d = document.createElement('div'); d.className = 'log-line log-' + l.c; d.textContent = l.t; box.appendChild(d); });
+      const d = document.createElement('div'); d.className = 'log-line log-info'; d.textContent = '— live · streaming stdout —'; box.appendChild(d);
+    }
+  }
+  
+  function closeLogs() { document.getElementById('logs-modal').classList.remove('show'); currentSiteId = null; }
+  
+  function restartSite() { toast('↻ Đang restart ' + (loadSites().find(x=>x.id===currentSiteId)?.name || '')); }
+  
+  function deleteSite() {
+    if (!currentSiteId) return;
+    if (!confirm('Bạn có chắc chắn muốn xoá web này khỏi máy không?')) return;
+    saveSites(loadSites().filter(x => x.id !== currentSiteId));
+    closeLogs(); 
+    renderSites(); 
+    toast('🗑 Đã xoá thành công');
+  }
+
+  // Run on start
+  updateHeaderUI();
+  renderSites();
+</script>
 </body>
 </html>
+
+
+```
